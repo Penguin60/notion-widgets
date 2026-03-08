@@ -117,7 +117,7 @@ const baseStyle: React.CSSProperties = {
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
-  borderRadius: 16,
+  borderRadius: 0,
   padding: "24px 20px",
   color: "#fff",
   fontFamily: "'Inter', system-ui, sans-serif",
