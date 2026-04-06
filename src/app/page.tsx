@@ -1,28 +1,34 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
+import { Hash, LayoutGrid, BarChart2, Circle, AlignJustify, Minus, Copy, Check } from "lucide-react";
 
 const COLORS = [
-  { name: "Blue", hex: "5B8DDE" },
-  { name: "Green", hex: "5BAA6E" },
-  { name: "Rose", hex: "CF6679" },
-  { name: "Gold", hex: "C59243" },
-  { name: "Purple", hex: "8B6DB0" },
+  { name: "Blue",       hex: "5B8DDE" },
+  { name: "Green",      hex: "5BAA6E" },
+  { name: "Rose",       hex: "CF6679" },
+  { name: "Gold",       hex: "C59243" },
+  { name: "Purple",     hex: "8B6DB0" },
   { name: "Terracotta", hex: "D47A54" },
-  { name: "Teal", hex: "4A9BA5" },
-  { name: "Red", hex: "DE5B5B" },
+  { name: "Teal",       hex: "4A9BA5" },
+  { name: "Red",        hex: "DE5B5B" },
 ];
 
 const STYLES = [
-  { id: "default", icon: "🔢", label: "Big Number" },
-  { id: "compact", icon: "🧊", label: "Compact" },
-  { id: "bar", icon: "📊", label: "Progress" },
+  { id: "default", Icon: Hash,        label: "Big Number" },
+  { id: "compact", Icon: LayoutGrid,  label: "Compact"    },
+  { id: "bar",     Icon: BarChart2,   label: "Progress"   },
 ];
 
 const PATTERNS = [
-  { id: "dots", icon: "· · ·", label: "Dots" },
-  { id: "stripes", icon: "|||", label: "Stripes" },
-  { id: "none", icon: "—", label: "None" },
+  { id: "dots",    Icon: Circle,        label: "Dots"    },
+  { id: "stripes", Icon: AlignJustify,  label: "Stripes" },
+  { id: "none",    Icon: Minus,         label: "None"    },
 ];
 
 function defaultDate() {
@@ -31,21 +37,30 @@ function defaultDate() {
   return d.toISOString().split("T")[0];
 }
 
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground mb-2">
+      {children}
+    </p>
+  );
+}
+
 export default function Home() {
-  const [label, setLabel] = useState("Vacation");
-  const [date, setDate] = useState(defaultDate);
-  const [color, setColor] = useState("5B8DDE");
+  const [label,       setLabel]       = useState("Vacation");
+  const [date,        setDate]        = useState(defaultDate);
+  const [color,       setColor]       = useState("5B8DDE");
   const [customColor, setCustomColor] = useState("#5B8DDE");
-  const [useCustom, setUseCustom] = useState(false);
-  const [style, setStyle] = useState("default");
-  const [pattern, setPattern] = useState("dots");
-  const [showDate, setShowDate] = useState(true);
-  const [copied, setCopied] = useState(false);
+  const [useCustom,   setUseCustom]   = useState(false);
+  const [style,       setStyle]       = useState("default");
+  const [pattern,     setPattern]     = useState("dots");
+  const [showDate,    setShowDate]    = useState(true);
+  const [copied,      setCopied]      = useState(false);
 
   const activeColor = useCustom ? customColor.replace("#", "") : color;
 
-  const embedUrl = useMemo(() => {
-    if (typeof window === "undefined") return "";
+  const [embedUrl, setEmbedUrl] = useState("");
+
+  useEffect(() => {
     const base = window.location.origin + "/widget";
     const p = new URLSearchParams();
     p.set("date", date);
@@ -54,7 +69,7 @@ export default function Home() {
     p.set("pattern", pattern);
     p.set("style", style);
     if (!showDate) p.set("showdate", "false");
-    return `${base}?${p.toString()}`;
+    setEmbedUrl(`${base}?${p.toString()}`);
   }, [date, label, activeColor, pattern, style, showDate]);
 
   const copy = async () => {
@@ -64,229 +79,191 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <header className="flex items-center gap-3.5 border-b border-[var(--color-border)] px-8 py-5">
-        <div className="grid h-9 w-9 place-items-center rounded-[10px] bg-[var(--color-accent)] text-lg font-black text-white">
-          D
-        </div>
-        <h1 className="text-lg font-bold">Dean Widgets</h1>
-        <span className="ml-auto text-sm text-[var(--color-text2)]">
-          Days Until Counter for Notion
-        </span>
-      </header>
+    <div className="min-h-screen bg-background text-foreground">
 
-      {/* Main grid */}
-      <div className="mx-auto grid max-w-[1100px] gap-12 px-8 py-10 md:grid-cols-2">
-        {/* LEFT – Config */}
-        <div>
-          <h2 className="mb-5 text-xs font-bold uppercase tracking-widest text-[var(--color-text2)]">
-            Configure Your Widget
-          </h2>
+      {/* Two-column layout */}
+      <div className="mx-auto grid max-w-[1100px] gap-10 px-6 py-10 md:grid-cols-2">
 
-          {/* Event name */}
-          <div className="mb-5">
-            <label className="mb-1.5 block text-[13px] font-semibold text-[var(--color-text2)]">
-              Event Name
-            </label>
-            <input
-              type="text"
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              placeholder="e.g. Vacation, Birthday, Launch Day"
-              className="w-full rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface2)] px-3.5 py-2.5 text-sm text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]"
-            />
-          </div>
+        {/* ── LEFT: Configure ── */}
+        <div className="space-y-8">
+          <div>
+            <SectionLabel>Configure</SectionLabel>
 
-          {/* Date */}
-          <div className="mb-5">
-            <label className="mb-1.5 block text-[13px] font-semibold text-[var(--color-text2)]">
-              Target Date
-            </label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface2)] px-3.5 py-2.5 text-sm text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]"
-            />
+            {/* Event Name */}
+            <div className="space-y-1.5 mb-4">
+              <Label htmlFor="event-name" className="text-sm text-muted-foreground font-normal">
+                Event Name
+              </Label>
+              <Input
+                id="event-name"
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                placeholder="e.g. Vacation, Birthday, Launch Day"
+              />
+            </div>
+
+            {/* Target Date */}
+            <div className="space-y-1.5">
+              <Label htmlFor="target-date" className="text-sm text-muted-foreground font-normal">
+                Target Date
+              </Label>
+              <Input
+                id="target-date"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </div>
           </div>
 
           {/* Style */}
-          <div className="mb-5">
-            <label className="mb-1.5 block text-[13px] font-semibold text-[var(--color-text2)]">
-              Style
-            </label>
-            <div className="flex gap-2.5 flex-wrap">
-              {STYLES.map((s) => (
+          <div>
+            <SectionLabel>Style</SectionLabel>
+            <div className="grid grid-cols-3 gap-2">
+              {STYLES.map(({ id, Icon, label: lbl }) => (
                 <button
-                  key={s.id}
-                  onClick={() => setStyle(s.id)}
-                  className={`flex-1 min-w-[90px] rounded-[10px] border-2 px-2.5 py-3 text-center transition-colors ${
-                    style === s.id
-                      ? "border-[var(--color-accent)]"
-                      : "border-[var(--color-border)] hover:border-[var(--color-text2)]"
-                  } bg-[var(--color-surface2)]`}
+                  key={id}
+                  onClick={() => setStyle(id)}
+                  className={cn(
+                    "flex flex-col cursor-pointer items-center justify-center gap-2 rounded-md border py-4 text-center transition-all duration-100",
+                    style === id
+                      ? "border-foreground/40 bg-foreground/[0.04]"
+                      : "border-border bg-background hover:bg-muted/50"
+                  )}
                 >
-                  <div className="text-2xl">{s.icon}</div>
-                  <div className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-text2)]">
-                    {s.label}
-                  </div>
+                  <Icon className={cn("size-4", style === id ? "text-foreground" : "text-muted-foreground")} strokeWidth={1.5} />
+                  <span className={cn("text-[11px] font-medium uppercase tracking-wide", style === id ? "text-foreground" : "text-muted-foreground")}>
+                    {lbl}
+                  </span>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Pattern */}
-          <div className="mb-5">
-            <label className="mb-1.5 block text-[13px] font-semibold text-[var(--color-text2)]">
-              Pattern
-            </label>
-            <div className="flex gap-2.5 flex-wrap">
-              {PATTERNS.map((p) => (
+          <div>
+            <SectionLabel>Pattern</SectionLabel>
+            <div className="grid grid-cols-3 gap-2">
+              {PATTERNS.map(({ id, Icon, label: lbl }) => (
                 <button
-                  key={p.id}
-                  onClick={() => setPattern(p.id)}
-                  className={`flex-1 min-w-[90px] rounded-[10px] border-2 px-2.5 py-3 text-center transition-colors ${
-                    pattern === p.id
-                      ? "border-[var(--color-accent)]"
-                      : "border-[var(--color-border)] hover:border-[var(--color-text2)]"
-                  } bg-[var(--color-surface2)]`}
+                  key={id}
+                  onClick={() => setPattern(id)}
+                  className={cn(
+                    "flex flex-col cursor-pointer items-center justify-center gap-2 rounded-md border py-4 text-center transition-all duration-100",
+                    pattern === id
+                      ? "border-foreground/40 bg-foreground/[0.04]"
+                      : "border-border bg-background hover:bg-muted/50"
+                  )}
                 >
-                  <div className="text-2xl leading-none">{p.icon}</div>
-                  <div className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-text2)]">
-                    {p.label}
-                  </div>
+                  <Icon className={cn("size-4", pattern === id ? "text-foreground" : "text-muted-foreground")} strokeWidth={1.5} />
+                  <span className={cn("text-[11px] font-medium uppercase tracking-wide", pattern === id ? "text-foreground" : "text-muted-foreground")}>
+                    {lbl}
+                  </span>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Color */}
-          <div className="mb-5">
-            <label className="mb-1.5 block text-[13px] font-semibold text-[var(--color-text2)]">
-              Color
-            </label>
-            <div className="flex flex-wrap gap-2.5">
+          <div>
+            <SectionLabel>Color</SectionLabel>
+            <div className="flex flex-wrap gap-2">
               {COLORS.map((c) => (
                 <button
                   key={c.hex}
                   title={c.name}
-                  onClick={() => {
-                    setColor(c.hex);
-                    setUseCustom(false);
-                  }}
-                  className={`h-9 w-9 rounded-[10px] border-[3px] transition-transform hover:scale-110 ${
+                  onClick={() => { setColor(c.hex); setUseCustom(false); }}
+                  className={cn(
+                    "h-7 w-7 cursor-pointer rounded-md border-2 transition-all hover:scale-110 focus:outline-none",
                     !useCustom && color === c.hex
-                      ? "border-white"
+                      ? "border-foreground shadow-sm"
                       : "border-transparent"
-                  }`}
+                  )}
                   style={{ background: `#${c.hex}` }}
                 />
               ))}
-              <div className="relative h-9 w-9">
-                <div className="pointer-events-none grid h-full w-full place-items-center rounded-[10px] border-2 border-dashed border-[var(--color-border)] text-base">
-                  🎨
+              {/* Custom color picker */}
+              <div className="relative h-7 w-7">
+                <div
+                  className={cn(
+                    "pointer-events-none grid h-full w-full place-items-center rounded-md border-2 border-dashed text-xs font-medium text-muted-foreground",
+                    useCustom ? "border-foreground" : "border-border"
+                  )}
+                >
+                  +
                 </div>
                 <input
                   type="color"
                   value={customColor}
-                  onChange={(e) => {
-                    setCustomColor(e.target.value);
-                    setUseCustom(true);
-                  }}
+                  onChange={(e) => { setCustomColor(e.target.value); setUseCustom(true); }}
                   className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                 />
               </div>
             </div>
           </div>
 
-          {/* Show date checkbox */}
-          <div className="mb-5 flex items-center gap-2">
-            <input
-              type="checkbox"
+          {/* Show date toggle */}
+          <div className="flex items-center gap-2.5">
+            <Checkbox
               id="showDate"
               checked={showDate}
-              onChange={(e) => setShowDate(e.target.checked)}
-              className="h-4 w-4 accent-[var(--color-accent)]"
+              onCheckedChange={(checked) => setShowDate(checked)}
             />
-            <label
-              htmlFor="showDate"
-              className="cursor-pointer text-[13px] text-[var(--color-text2)]"
-            >
+            <Label htmlFor="showDate" className="text-sm font-normal text-muted-foreground cursor-pointer select-none">
               Show target date on widget
-            </label>
+            </Label>
           </div>
 
           {/* Embed URL */}
-          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-[var(--color-text2)]">
-              Embed URL (paste in Notion)
-            </label>
+          <div>
+            <SectionLabel>Embed URL</SectionLabel>
             <div className="flex gap-2">
-              <input
+              <Input
                 readOnly
                 value={embedUrl}
-                className="flex-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface2)] px-3.5 py-2.5 font-mono text-xs text-[var(--color-text)] outline-none"
+                className="flex-1 font-mono text-xs text-muted-foreground"
               />
-              <button
-                onClick={copy}
-                className={`whitespace-nowrap rounded-lg px-5 py-2.5 text-[13px] font-semibold text-white transition-colors ${
-                  copied ? "bg-green-600" : "bg-[var(--color-accent)] hover:opacity-85"
-                }`}
-              >
-                {copied ? "✓ Copied!" : "Copy"}
-              </button>
+              <Button onClick={copy} className="shrink-0 gap-1.5">
+                {copied
+                  ? <><Check className="size-3.5" /> Copied</>
+                  : <><Copy className="size-3.5" /> Copy</>
+                }
+              </Button>
             </div>
-          </div>
-
-          {/* Hosting note */}
-          <div className="mt-4 rounded-[10px] border border-[rgba(91,141,222,0.2)] bg-[rgba(91,141,222,0.08)] p-3.5 text-xs leading-relaxed text-[var(--color-text2)]">
-            <strong className="text-[var(--color-accent)]">💡 How to use:</strong>{" "}
-            Deploy this site to Vercel, then paste the embed URL into a Notion{" "}
-            <code className="rounded bg-[var(--color-surface2)] px-1.5 py-0.5 text-[11px]">
-              /embed
-            </code>{" "}
-            block. The widget auto-updates every page load.
           </div>
         </div>
 
-        {/* RIGHT – Preview */}
-        <div>
-          <h2 className="mb-5 text-xs font-bold uppercase tracking-widest text-[var(--color-text2)]">
-            Live Preview
-          </h2>
-
-          <div className="mb-6 flex min-h-[260px] items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-8">
-            <iframe
-              key={embedUrl}
-              src={embedUrl}
-              className="h-[200px] w-[280px] overflow-hidden rounded-2xl border-0"
-            />
+        {/* ── RIGHT: Preview + Instructions ── */}
+        <div className="space-y-6">
+          <div>
+            <SectionLabel>Preview</SectionLabel>
+            <div className="flex min-h-[260px] items-center justify-center rounded-xl border border-border bg-muted/30 p-8">
+              <iframe
+                key={embedUrl}
+                src={embedUrl}
+                className="h-[200px] w-[280px] overflow-hidden rounded-xl border-0"
+              />
+            </div>
           </div>
 
           {/* Instructions */}
-          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
-            <h3 className="mb-2.5 text-[13px] font-bold">
-              How to Embed in Notion
-            </h3>
-            <ol className="list-decimal space-y-1 pl-5 text-[13px] leading-relaxed text-[var(--color-text2)]">
-              <li>Configure your widget using the options on the left.</li>
-              <li>
-                Click <strong className="text-[var(--color-text)]">Copy</strong>{" "}
-                to copy the embed URL.
-              </li>
-              <li>
-                In Notion, type{" "}
-                <code className="rounded bg-[var(--color-surface2)] px-1.5 py-0.5 text-xs">
-                  /embed
-                </code>{" "}
-                and press Enter.
-              </li>
-              <li>
-                Paste the URL and click{" "}
-                <strong className="text-[var(--color-text)]">Embed link</strong>.
-              </li>
-              <li>Resize the block to fit your layout.</li>
+          <div className="rounded-xl border border-border bg-background p-5">
+            <p className="mb-4 text-sm font-semibold">How to embed in Notion</p>
+            <ol className="space-y-3">
+              {[
+                "Configure your widget using the options on the left.",
+                <>Click <strong className="font-semibold text-foreground">Copy</strong> to copy the embed URL.</>,
+                <>In Notion, type <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px]">/embed</code> and press Enter.</>,
+                <>Paste the URL and click <strong className="font-semibold text-foreground">Embed link</strong>.</>,
+                "Resize the block to fit your layout.",
+              ].map((step, i) => (
+                <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border text-[11px] font-medium text-muted-foreground/60">
+                    {i + 1}
+                  </span>
+                  <span className="leading-relaxed">{step}</span>
+                </li>
+              ))}
             </ol>
           </div>
         </div>
